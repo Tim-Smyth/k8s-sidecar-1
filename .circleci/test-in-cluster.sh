@@ -58,6 +58,10 @@ CLUSTER_NAME="sidecar-testing"
     kubectl apply -f "${REPO_ROOT}"/.circleci/test/configmap.yaml
   }
 
+  install_late_configmap(){
+    kubectl apply -f "${REPO_ROOT}"/.circleci/test/late_configmap.yaml
+  }
+
   list_pods(){
     kubectl get pods -oyaml
   }
@@ -69,6 +73,11 @@ CLUSTER_NAME="sidecar-testing"
 
   verify_configmap_read(){
     kubectl exec sidecar -- ls /tmp/hello.world
+  }
+
+
+  verify_late_configmap_read(){
+    kubectl exec sidecar -- ls /tmp/late.hello.world
   }
 
   cleanup_cluster() {
@@ -91,6 +100,11 @@ CLUSTER_NAME="sidecar-testing"
       list_pods
       log_sidecar
       verify_configmap_read
+      # Wait 10+1 min to see if the k8s client hangs up
+      sleep 660
+      install_late_configmap
+      sleep 10
+      verify_late_configmap_read
   }
   main
 
